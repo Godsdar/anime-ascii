@@ -8,7 +8,7 @@
 <rect x="93" y="157" width="10" height="10" rx="5" fill="#9ece6a" stroke="#9ece6a"/>
 <text x="135" y="166" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="16" xml:space="preserve">makima / tokyonight</text>
 <rect x="31" y="186" width="1068" height="1" rx="0" fill="#414868" stroke="#414868"/>
-<text x="50" y="219" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="17" xml:space="preserve">$ art -style makima -width 160 -color always</text>
+<text x="50" y="219" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="17" xml:space="preserve">$ anime-ascii makima -width 160 -color always</text>
 <text x="468.0" y="279" fill="#f07a9b" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">:</text>
 <text x="474.0" y="279" fill="#f17a98" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">-</text>
 <text x="480.0" y="279" fill="#f27996" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">=</text>
@@ -5420,7 +5420,7 @@
 <rect x="1193" y="157" width="10" height="10" rx="5" fill="#9ece6a" stroke="#9ece6a"/>
 <text x="1235" y="166" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="16" xml:space="preserve">reze / tokyonight</text>
 <rect x="1131" y="186" width="1068" height="1" rx="0" fill="#414868" stroke="#414868"/>
-<text x="1150" y="219" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="17" xml:space="preserve">$ art -style reze -width 160 -color always</text>
+<text x="1150" y="219" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="17" xml:space="preserve">$ anime-ascii reze -width 160 -color always</text>
 <text x="1502.0" y="265" fill="#d58bca" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">:</text>
 <text x="1508.0" y="265" fill="#d789c6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">=</text>
 <text x="1514.0" y="265" fill="#d988c3" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">+</text>
@@ -12955,7 +12955,7 @@
 <rect x="2293" y="157" width="10" height="10" rx="5" fill="#9ece6a" stroke="#9ece6a"/>
 <text x="2335" y="166" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="16" xml:space="preserve">denji / tokyonight</text>
 <rect x="2231" y="186" width="1068" height="1" rx="0" fill="#414868" stroke="#414868"/>
-<text x="2250" y="219" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="17" xml:space="preserve">$ art -style denji -width 160 -color always</text>
+<text x="2250" y="219" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="17" xml:space="preserve">$ anime-ascii denji -width 160 -color always</text>
 <text x="2464.0" y="293" fill="#bb9af7" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">:</text>
 <text x="2470.0" y="293" fill="#bb9af7" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">*</text>
 <text x="2476.0" y="293" fill="#bb9af7" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="10" xml:space="preserve">+</text>
