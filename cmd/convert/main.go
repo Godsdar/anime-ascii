@@ -25,13 +25,13 @@ func main() {
 
 func run() error {
 	input := flag.String("image", "", "PNG/JPEG/GIF source file")
-	width := flag.Int("width", 100, "output columns: 10..160")
+	width := flag.Int("width", 100, "output columns: 10..240")
 	invert := flag.Bool("invert", false, "render dark source pixels as dense characters")
 	contrast := flag.Float64("contrast", 1, "contrast multiplier: 0.1..3")
 	crop := flag.String("crop", "", "optional source rectangle: left,top,right,bottom")
 	flag.Parse()
-	if *input == "" || flag.NArg() != 0 || *width < 10 || *width > 160 || math.IsNaN(*contrast) || *contrast < 0.1 || *contrast > 3 {
-		return fmt.Errorf("use -image FILE, -width 10..160 and -contrast 0.1..3")
+	if *input == "" || flag.NArg() != 0 || *width < 10 || *width > 240 || math.IsNaN(*contrast) || *contrast < 0.1 || *contrast > 3 {
+		return fmt.Errorf("use -image FILE, -width 10..240 and -contrast 0.1..3")
 	}
 	file, err := os.Open(*input)
 	if err != nil {

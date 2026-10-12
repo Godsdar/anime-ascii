@@ -1,10 +1,10 @@
 # anime-ascii
 
-Makima and Reze illustrations converted into ASCII for your Unix terminal, in the Tokyo Night palette. A Go HTTP server supplies the converted portraits; the CLI adds ANSI truecolor.
+Makima, Reze and Denji illustrations converted into ASCII for your Unix terminal, in the Tokyo Night palette. A Go HTTP server supplies the converted portraits; the CLI adds ANSI truecolor.
 
-![Makima and Reze ASCII portraits in Tokyo Night colors](docs/images/anime-gallery.png)
+![Makima, Reze and Denji ASCII portraits in Tokyo Night colors](docs/images/anime-gallery.png)
 
-The portraits were converted from illustrations by [eastman](https://wall.alphacoders.com/big.php?i=1284789) and [SpringHaru](https://twiman.net/user/1348570965135949830/illust/1970415339994521708). The previews render actual captured CLI output at 3× resolution. For sharp zooming, open the vector versions: [portrait gallery](docs/images/anime-gallery.svg) and [Makima terminal](docs/images/makima-terminal.svg).
+The portraits were converted from illustrations by [eastman](https://wall.alphacoders.com/big.php?i=1284789), [SpringHaru](https://twiman.net/user/1348570965135949830/illust/1970415339994521708), and an [official Denji character visual](https://natalie.mu/eiga/gallery/news/616805/2555644). The previews render actual captured CLI output at 3× resolution. The gallery uses 160-column portraits; individual previews use 240 columns. For sharp zooming, open the vector versions: [portrait gallery](docs/images/anime-gallery.svg) [Makima terminal](docs/images/makima-terminal.svg), [Reze terminal](docs/images/reze-terminal.svg), and [Denji terminal](docs/images/denji-terminal.svg).
 
 ## Quick start
 
@@ -22,7 +22,7 @@ Keep the server running. In a second terminal, from the same directory:
 go run ./cmd/art -style makima
 ```
 
-Use a terminal that supports ANSI escape sequences and 24-bit color. The bundled portraits are 100 columns wide and up to 70 lines tall; use a smaller font or pipe plain output into `less` to scroll.
+Use a terminal that supports ANSI escape sequences and 24-bit color. The default is 160 columns. Use `-width 80` for a compact view or `-width 240` for the most detail. Larger portraits need a wide terminal and may extend below the screen; pipe plain output into `less` to scroll.
 
 ![Makima ASCII portrait in a high-resolution terminal preview](docs/images/makima-terminal.png)
 
@@ -32,14 +32,35 @@ Use a terminal that supports ANSI escape sequences and 24-bit color. The bundled
 | --- | --- | --- |
 | Makima | `makima` | Converted portrait by eastman. Default. |
 | Reze | `reze` | Converted illustration by SpringHaru. |
+| Denji | `denji` | Chainsaw Man form, converted from a film character visual. |
 
 ```sh
 go run ./cmd/art -style makima -color always
 go run ./cmd/art -style reze -color always
-go run ./cmd/art -style reze | less
+go run ./cmd/art -style reze -width 240 | less
+go run ./cmd/art -style denji -width 240 -color always
 ```
 
 The facial expressions come from the source images. The portraits are static. Optional `-animate` moves the color gradient; it requires a terminal tall enough to hold the entire portrait. Ctrl+C returns to your shell.
+
+## Resolution
+
+Choose `-width 80`, `100`, `160`, `200`, or `240`. Each version is converted directly from the source image. The height grows with the width to preserve the portrait proportions.
+
+| Character | Default (160 columns) | Detailed (240 columns) |
+| --- | --- | --- |
+| Makima | 160 × 108 | 240 × 162 |
+| Reze | 160 × 112 | 240 × 168 |
+| Denji | 160 × 57 | 240 × 85 |
+
+```sh
+go run ./cmd/art -style makima -width 240 -color always
+go run ./cmd/art -style denji -width 240 -color always | less -R
+```
+
+![Denji converted into detailed ASCII](docs/images/denji-terminal.png)
+
+[Open the vector Denji preview](docs/images/denji-terminal.svg).
 
 ## Colors and pipes
 
@@ -69,7 +90,7 @@ go run ./cmd/art -image picture.png -width 100 -invert -contrast 1.5 -color alwa
 go run ./cmd/art -image picture.png -width 100 > picture.txt
 ```
 
-Uploads are limited to **8 MiB** and **12 million pixels**. Output width is 10 to 160 characters, with a maximum height of 80 lines. Transparent pixels blend onto black; GIF conversion uses the first frame. Very tall images are compressed when they reach the height limit.
+Uploads are limited to **8 MiB** and **12 million pixels**. Output width is 10 to 240 characters, with a maximum height of 180 lines. Transparent pixels blend onto black; GIF conversion uses the first frame. Very tall images are compressed when they reach the height limit.
 
 To convert locally without a server:
 
@@ -106,7 +127,7 @@ curl -fsS --data-binary @picture.png \
 | `GET /fast` | A response after 200 ms for the concurrency demo. |
 | `GET /slow` | A response after one second for the concurrency demo. |
 
-`/art` and `/preview` accept `style` and a nonnegative integer `frame` for the color gradient. The `color` parameter accepts `none`, `tokyonight`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `tokyonight`.
+`/art` and `/preview` accept `style`, portrait `width` (80/100/160/200/240), and a nonnegative integer `frame` for the color gradient. The `color` parameter accepts `none`, `tokyonight`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `tokyonight`.
 
 Successful `/art` and `/convert` responses use `text/plain; charset=utf-8`. Invalid parameters or images return **400**; oversized uploads or image dimensions return **413**.
 
@@ -145,4 +166,4 @@ The CLI is intended for macOS and Linux. It has been tested on macOS.
 
 The bundled portraits are image conversions embedded as plain ASCII text. Source raster files are not included. Image conversion also works with files you provide; it does not generate new illustrations.
 
-Characters: Makima and Reze from Chainsaw Man, by Tatsuki Fujimoto.
+Characters: Makima, Reze and Denji from Chainsaw Man, by Tatsuki Fujimoto.

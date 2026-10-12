@@ -26,11 +26,11 @@ func main() {
 
 func run() error {
 	server := flag.String("server", "http://127.0.0.1:8080", "ASCII server URL")
-	style := flag.String("style", "makima", "makima, reze")
+	style := flag.String("style", "makima", "makima, reze, denji")
 	colorMode := flag.String("color", "auto", "auto, always, never")
 	theme := flag.String("theme", "tokyonight", "tokyonight, rainbow, pastel")
 	imagePath := flag.String("image", "", "PNG/JPEG/GIF file to convert")
-	width := flag.Int("width", 80, "image output width: 10..160")
+	width := flag.Int("width", 160, "portrait columns: 80,100,160,200,240; images: 10..240")
 	invert := flag.Bool("invert", false, "dense characters for dark image pixels")
 	contrast := flag.Float64("contrast", 1, "image contrast multiplier: 0.1..3")
 	animate := flag.Bool("animate", false, "animate the color gradient; Ctrl+C to stop")
@@ -50,8 +50,8 @@ func run() error {
 	if flag.NArg() != 0 {
 		return fmt.Errorf("unexpected arguments; use -help for options")
 	}
-	if *width < 10 || *width > 160 {
-		return fmt.Errorf("width must be between 10 and 160")
+	if *width < 10 || *width > 240 {
+		return fmt.Errorf("width must be between 10 and 240")
 	}
 	if math.IsNaN(*contrast) || *contrast < 0.1 || *contrast > 3 {
 		return fmt.Errorf("contrast must be between 0.1 and 3")
@@ -90,6 +90,7 @@ func run() error {
 		} else {
 			endpoint.Path = "/art"
 			q.Set("style", *style)
+			q.Set("width", strconv.Itoa(*width))
 			q.Set("frame", strconv.Itoa(frame))
 		}
 		endpoint.RawQuery = q.Encode()

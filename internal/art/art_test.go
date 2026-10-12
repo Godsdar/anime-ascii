@@ -9,32 +9,39 @@ import (
 
 func TestConvertedPortraits(t *testing.T) {
 	var previous string
-	for _, style := range []string{"makima", "reze"} {
-		text, err := Portrait(style)
-		if err != nil {
-			t.Fatal(err)
-		}
-		lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
-		if len(lines) < 50 || len(lines) > 80 {
-			t.Fatalf("%s: unexpected portrait height", style)
-		}
-		for _, line := range lines {
-			if len(line) != 100 {
-				t.Fatalf("%s: expected 100 columns", style)
+	for _, style := range []string{"makima", "reze", "denji"} {
+		previousHeight := 0
+		for _, width := range []int{80, 100, 160, 200, 240} {
+			text, err := Portrait(style, width)
+			if err != nil {
+				t.Fatal(err)
 			}
-			for _, ch := range line {
-				if !strings.ContainsRune(" .:-=+*#%@", ch) {
-					t.Fatalf("%s: invalid ASCII density character", style)
+			lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
+			if len(lines) <= previousHeight || len(lines) > 180 {
+				t.Fatalf("%s/%d: resolution must add detail while preserving proportions", style, width)
+			}
+			previousHeight = len(lines)
+			for _, line := range lines {
+				if len(line) != width {
+					t.Fatalf("%s: expected %d columns", style, width)
+				}
+				for _, ch := range line {
+					if !strings.ContainsRune(" .:-=+*#%@", ch) {
+						t.Fatalf("%s: invalid ASCII density character", style)
+					}
 				}
 			}
+			if text == previous {
+				t.Fatal("portraits and resolutions must differ")
+			}
+			previous = text
 		}
-		if text == previous {
-			t.Fatal("portraits must differ")
-		}
-		previous = text
 	}
-	if _, err := Portrait("unknown"); err == nil {
+	if _, err := Portrait("unknown", 160); err == nil {
 		t.Fatal("unknown character must fail")
+	}
+	if _, err := Portrait("makima", 161); err == nil {
+		t.Fatal("unsupported resolution must fail")
 	}
 }
 
@@ -96,5 +103,14 @@ func TestRenderBlackWhiteAndTransparency(t *testing.T) {
 	inverted := RenderAdjusted(img, 10, true, 1.5)
 	if inverted != strings.Repeat("@@@@@     \n", 5) {
 		t.Fatalf("unexpected inverted rendering: %q", inverted)
+	}
+}
+
+func TestDetailedRenderPreservesAspectRatio(t *testing.T) {
+	img := image.NewGray(image.Rect(0, 0, 10, 14))
+	text := RenderAdjusted(img, 240, true, 1)
+	lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
+	if len(lines) != 168 || len(lines[0]) != 240 {
+		t.Fatal("high-resolution rendering must preserve proportions beyond 80 rows")
 	}
 }

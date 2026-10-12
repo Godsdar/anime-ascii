@@ -16,6 +16,11 @@ func TestRoutes(t *testing.T) {
 		code int
 	}{
 		{"/art", 200},
+		{"/art?style=denji&width=240", 200},
+		{"/art?style=makima&width=160", 200},
+		{"/art?width=161", 400},
+		{"/art?width=oops", 400},
+		{"/preview?style=denji&width=240", 200},
 		{"/art?style=makima&color=tokyonight", 200},
 		{"/preview?style=reze&color=tokyonight", 200},
 		{"/art?color=unknown", 400},
@@ -45,7 +50,7 @@ func TestConvert(t *testing.T) {
 	if w.Code != 200 || w.Body.String() != strings.Repeat(strings.Repeat(" ", 20)+"\n", 10) {
 		t.Fatalf("unexpected conversion: %d %q", w.Code, w.Body.String())
 	}
-	for _, path := range []string{"/convert", "/convert?width=0", "/convert?width=161", "/convert?width=oops", "/convert?invert=oops", "/convert?contrast=NaN", "/convert?contrast=4"} {
+	for _, path := range []string{"/convert", "/convert?width=0", "/convert?width=241", "/convert?width=oops", "/convert?invert=oops", "/convert?contrast=NaN", "/convert?contrast=4"} {
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, httptest.NewRequest("POST", path, strings.NewReader("not an image")))
 		if w.Code != 400 {

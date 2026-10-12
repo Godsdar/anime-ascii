@@ -11,11 +11,16 @@ import (
 //go:embed portraits/*.txt
 var portraits embed.FS
 
-func Portrait(style string) (string, error) {
-	if style != "makima" && style != "reze" {
-		return "", fmt.Errorf("unknown style: use makima, reze")
+func Portrait(style string, width int) (string, error) {
+	if style != "makima" && style != "reze" && style != "denji" {
+		return "", fmt.Errorf("unknown style: use makima, reze, denji")
 	}
-	data, err := portraits.ReadFile("portraits/" + style + ".txt")
+	switch width {
+	case 80, 100, 160, 200, 240:
+	default:
+		return "", fmt.Errorf("portrait width must be 80, 100, 160, 200 or 240")
+	}
+	data, err := portraits.ReadFile(fmt.Sprintf("portraits/%s-%d.txt", style, width))
 	return string(data), err
 }
 
@@ -26,7 +31,7 @@ func Render(img image.Image, width int) string {
 
 func RenderAdjusted(img image.Image, width int, invert bool, contrast float64) string {
 	b := img.Bounds()
-	height := max(1, min(80, int(math.Round(float64(b.Dy())/float64(b.Dx())*float64(width)*0.5))))
+	height := max(1, min(180, int(math.Round(float64(b.Dy())/float64(b.Dx())*float64(width)*0.5))))
 	const palette = " .:-=+*#%@"
 	var out strings.Builder
 	for y := 0; y < height; y++ {
