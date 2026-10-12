@@ -7,19 +7,34 @@ import (
 	"testing"
 )
 
-func TestPortraitsAndBlink(t *testing.T) {
+func TestConvertedPortraits(t *testing.T) {
+	var previous string
 	for _, style := range []string{"makima", "reze"} {
-		awake, err := Portrait(style, "happy", 0)
+		text, err := Portrait(style)
 		if err != nil {
 			t.Fatal(err)
 		}
-		blink, err := Portrait(style, "happy", 7)
-		if err != nil || awake == blink || len(awake) != len(blink) {
-			t.Fatalf("%s: blink should change eyes without changing frame size", style)
+		lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
+		if len(lines) < 50 || len(lines) > 80 {
+			t.Fatalf("%s: unexpected portrait height", style)
 		}
-		if strings.Contains(awake, "{{") {
-			t.Fatal("unresolved template placeholder")
+		for _, line := range lines {
+			if len(line) != 100 {
+				t.Fatalf("%s: expected 100 columns", style)
+			}
+			for _, ch := range line {
+				if !strings.ContainsRune(" .:-=+*#%@", ch) {
+					t.Fatalf("%s: invalid ASCII density character", style)
+				}
+			}
 		}
+		if text == previous {
+			t.Fatal("portraits must differ")
+		}
+		previous = text
+	}
+	if _, err := Portrait("unknown"); err == nil {
+		t.Fatal("unknown character must fail")
 	}
 }
 
@@ -77,5 +92,9 @@ func TestRenderBlackWhiteAndTransparency(t *testing.T) {
 	want := strings.Repeat("     @@@@@\n", 5)
 	if got != want {
 		t.Fatalf("unexpected rendering: %q", got)
+	}
+	inverted := RenderAdjusted(img, 10, true, 1.5)
+	if inverted != strings.Repeat("@@@@@     \n", 5) {
+		t.Fatalf("unexpected inverted rendering: %q", inverted)
 	}
 }

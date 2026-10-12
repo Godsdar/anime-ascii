@@ -1,0 +1,3 @@
+# Fixed-width ASCII portraits intentionally preserve spaces at line ends.
+internal/art/portraits/*.txt whitespace=-blank-at-eol
+makima.txt whitespace=-blank-at-eol

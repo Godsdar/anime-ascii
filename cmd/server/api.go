@@ -9,6 +9,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,7 +21,7 @@ func routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		plain(w)
-		fmt.Fprint(w, "ANIME ASCII\n\nGET /art?style=makima&mood=happy&frame=0\nStyles: makima, reze\nMoods: happy, sleepy, surprised\nPOST /convert?width=80 (raw PNG/JPEG/GIF body)\nGET /fast and /slow: concurrency demo\n")
+		fmt.Fprint(w, "ANIME ASCII\n\nGET /art?style=makima&frame=0\nStyles: makima, reze\nPOST /convert?width=80 (raw PNG/JPEG/GIF body)\nGET /fast and /slow: concurrency demo\n")
 	})
 	mux.HandleFunc("GET /art", portrait)
 	mux.HandleFunc("GET /preview", portrait)
@@ -37,12 +38,9 @@ func plain(w http.ResponseWriter) {
 
 func portrait(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	style, mood := q.Get("style"), q.Get("mood")
+	style := q.Get("style")
 	if style == "" {
 		style = "makima"
-	}
-	if mood == "" {
-		mood = "happy"
 	}
 	frame := 0
 	if q.Has("frame") {
@@ -53,7 +51,7 @@ func portrait(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	output, err := art.Portrait(style, mood, frame)
+	output, err := art.Portrait(style)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -74,7 +72,7 @@ func portrait(w http.ResponseWriter, r *http.Request) {
 	if preview {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		// Only escaped characters and generated color spans reach this template.
-		page := template.Must(template.New("preview").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anime ASCII</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1a1b26;color:#e2e5f0;font-family:monospace}main{padding:32px;border:1px solid #414868;border-radius:20px;background:#24283b;box-shadow:0 20px 80px #0005}p{color:#a9b1d6}pre{font-size:clamp(10px,1.8vw,16px);line-height:1.25;font-family:Menlo,Consolas,monospace}a{color:#b4befe}nav{display:flex;gap:20px}</style><main><p>ANIME ASCII / TOKYO NIGHT</p><pre>{{.}}</pre><nav><a href="/preview?style=makima">Makima</a><a href="/preview?style=reze">Reze</a></nav><p>go run ./cmd/art -animate</p></main></html>`))
+		page := template.Must(template.New("preview").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anime ASCII</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1a1b26;color:#e2e5f0;font-family:monospace}main{padding:32px;border:1px solid #414868;border-radius:20px;background:#24283b;box-shadow:0 20px 80px #0005}p{color:#a9b1d6}pre{font-size:clamp(6px,1vw,11px);line-height:1.25;font-family:Menlo,Consolas,monospace}a{color:#b4befe}nav{display:flex;gap:20px}</style><main><p>ANIME ASCII / TOKYO NIGHT</p><pre>{{.}}</pre><nav><a href="/preview?style=makima">Makima</a><a href="/preview?style=reze">Reze</a></nav><p>go run ./cmd/art -animate</p></main></html>`))
 		page.Execute(w, template.HTML(output))
 		return
 	}
@@ -83,6 +81,25 @@ func portrait(w http.ResponseWriter, r *http.Request) {
 }
 
 func convert(w http.ResponseWriter, r *http.Request) {
+	invert := false
+	contrast := 1.0
+	q := r.URL.Query()
+	if q.Has("invert") {
+		var err error
+		invert, err = strconv.ParseBool(q.Get("invert"))
+		if err != nil {
+			http.Error(w, "invert must be true or false", http.StatusBadRequest)
+			return
+		}
+	}
+	if q.Has("contrast") {
+		var err error
+		contrast, err = strconv.ParseFloat(q.Get("contrast"), 64)
+		if err != nil || math.IsNaN(contrast) || contrast < 0.1 || contrast > 3 {
+			http.Error(w, "contrast must be between 0.1 and 3", http.StatusBadRequest)
+			return
+		}
+	}
 	width := 80
 	if r.URL.Query().Has("width") {
 		var err error
@@ -114,5 +131,5 @@ func convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	plain(w)
-	fmt.Fprint(w, art.Render(img, width))
+	fmt.Fprint(w, art.RenderAdjusted(img, width, invert, contrast))
 }

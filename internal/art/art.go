@@ -1,99 +1,30 @@
 package art
 
 import (
+	"embed"
 	"fmt"
 	"image"
 	"math"
 	"strings"
 )
 
-// Portrait keeps every generated frame the same size for terminal animation.
-func Portrait(style, mood string, frame int) (string, error) {
-	eyes, mouth := "o", "_"
-	if style == "makima" {
-		eyes = "@"
-	}
-	switch mood {
-	case "happy":
-		mouth = "v"
-	case "sleepy":
-		eyes = "-"
-	case "surprised":
-		eyes, mouth = "O", "o"
-	default:
-		return "", fmt.Errorf("unknown mood: use happy, sleepy, surprised")
-	}
-	if frame%8 == 7 {
-		eyes = "-"
-	}
-	var template string
-	switch style {
-	case "makima":
-		template = `                  _..---.._
-              .-'///////////'-.
-            .'///////////////// '.
-           ///////////////////////\
-          ///////.'  /|  './////////|
-         /////// /  / |   |\////////|
-         ////// /  /  |   | \///////|
-         ///// /__/___|___|__\//////|
-         |///|  _____     _____ |///|
-         |///| / .-. \   / .-. \|///|
-         |///| |( {{E}} )|   |( {{E}} )|///|
-         |///|  '---'     '---' |///|
-          \//|        .        |// /
-           \ |        '        | /
-            \|       {{M}}        |/
-             '.               .'
-          .--. '._         _.' .--.
-         (////)   '---.---'    (////)
-          (//)       | |       (//)
-         (////)  .---| |---.  (////)
-          (//) .'  /\   /\  '. (//)
-         (////)/  /  \ /  \  \(////)
-          (//)/__/   /V\   \__\(//)
-           \/ |     \ /     | \/
-              |      V      |
-              |      |      |
-              |      |      |
-`
-	case "reze":
-		template = `                 _..-----.._
-             .-'////////////'-.
-           .'//////////////////'.
-          ///////////////////////\
-         ///////.'      './////////|
-        /////// /   /|    \////////|
-        ////// /   / |     \///////|
-        ///// /   /  |      \//////|
-        |/// /___/   |___    \/////|
-        |///|  ____      '---.\////|
-        |///| / .-.\      __  |////|
-        |///| |  {{E}} |     /{{E}} \ |////|
-        |///|  '---'      '-'  |////|
-        |///|       .         |////|
-        |///|       '         |////|
-         \//|      {{M}}          |/// /
-          \//'.             .'/// /
-           \///'._       _.'//// /
-            '-----|-----|------'
-                  |=====|--o
-              .---|     |---.
-             /    '.___.'    \
-            / /\           /\ \
-           / /  |         |  \ \
-          / /   |         |   \ \
-         /_/    |         |    \_\
-                |_________|
-`
-	default:
+//go:embed portraits/*.txt
+var portraits embed.FS
+
+func Portrait(style string) (string, error) {
+	if style != "makima" && style != "reze" {
 		return "", fmt.Errorf("unknown style: use makima, reze")
 	}
-	return strings.NewReplacer("{{E}}", eyes, "{{M}}", mouth).Replace(template), nil
+	data, err := portraits.ReadFile("portraits/" + style + ".txt")
+	return string(data), err
 }
 
 // Render averages each source region; transparent pixels blend onto black.
 func Render(img image.Image, width int) string {
+	return RenderAdjusted(img, width, false, 1)
+}
+
+func RenderAdjusted(img image.Image, width int, invert bool, contrast float64) string {
 	b := img.Bounds()
 	height := max(1, min(80, int(math.Round(float64(b.Dy())/float64(b.Dx())*float64(width)*0.5))))
 	const palette = " .:-=+*#%@"
@@ -112,6 +43,10 @@ func Render(img image.Image, width int) string {
 				}
 			}
 			brightness := sum / float64((x1-x0)*(y1-y0)) / 65535
+			brightness = max(0, min(1, (brightness-0.5)*contrast+0.5))
+			if invert {
+				brightness = 1 - brightness
+			}
 			out.WriteByte(palette[min(len(palette)-1, int(brightness*float64(len(palette)-1)))])
 		}
 		out.WriteByte('\n')

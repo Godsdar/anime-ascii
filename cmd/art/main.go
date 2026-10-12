@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -28,10 +29,11 @@ func run() error {
 	style := flag.String("style", "makima", "makima, reze")
 	colorMode := flag.String("color", "auto", "auto, always, never")
 	theme := flag.String("theme", "tokyonight", "tokyonight, rainbow, pastel")
-	mood := flag.String("mood", "happy", "happy, sleepy, surprised")
 	imagePath := flag.String("image", "", "PNG/JPEG/GIF file to convert")
 	width := flag.Int("width", 80, "image output width: 10..160")
-	animate := flag.Bool("animate", false, "blink in terminal; Ctrl+C to stop")
+	invert := flag.Bool("invert", false, "dense characters for dark image pixels")
+	contrast := flag.Float64("contrast", 1, "image contrast multiplier: 0.1..3")
+	animate := flag.Bool("animate", false, "animate the color gradient; Ctrl+C to stop")
 	flag.Parse()
 	if *colorMode != "auto" && *colorMode != "always" && *colorMode != "never" {
 		return fmt.Errorf("color must be auto, always or never")
@@ -50,6 +52,9 @@ func run() error {
 	}
 	if *width < 10 || *width > 160 {
 		return fmt.Errorf("width must be between 10 and 160")
+	}
+	if math.IsNaN(*contrast) || *contrast < 0.1 || *contrast > 3 {
+		return fmt.Errorf("contrast must be between 0.1 and 3")
 	}
 	if *animate && *imagePath != "" {
 		return fmt.Errorf("animation supports portraits only")
@@ -80,10 +85,11 @@ func run() error {
 			method = http.MethodPost
 			endpoint.Path = "/convert"
 			q.Set("width", strconv.Itoa(*width))
+			q.Set("invert", strconv.FormatBool(*invert))
+			q.Set("contrast", strconv.FormatFloat(*contrast, 'f', -1, 64))
 		} else {
 			endpoint.Path = "/art"
 			q.Set("style", *style)
-			q.Set("mood", *mood)
 			q.Set("frame", strconv.Itoa(frame))
 		}
 		endpoint.RawQuery = q.Encode()
