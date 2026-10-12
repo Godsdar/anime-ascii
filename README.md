@@ -1,122 +1,136 @@
-# Terminal Pet Club на Go
+# Terminal Pet Club
 
-Локальный HTTP-сервер и Unix CLI для компактных ASCII-питомцев: котик (`neko`), зайчик (`bunny`), лисёнок (`fox`) и робот (`mecha`). Старые имена `cat` и `chibi` работают как алиасы. Персонажи собираются из символьных шаблонов; выражение лица и кадр меняют глаза и рот. CLI добавляет плавный радужный или пастельный градиент с ANSI truecolor. Отдельный маршрут превращает свои PNG/JPEG/GIF в ASCII по яркости пикселей. Внешних библиотек и AI-сервисов нет.
+Small ASCII pets for your Unix terminal, with rainbow gradients, soft pastel colors, and blinking eyes. A Go HTTP server supplies the artwork; the CLI brings it into your terminal.
 
-Нужен Go 1.26+. Проверено на macOS; CLI использует стандартные сигналы Unix, подходит и для Linux.
+![Rainbow cat, pastel bunny, and rainbow fox CLI output](docs/images/pets.png)
 
-## Попробовать
+The previews above and below render captured CLI output, including its ANSI truecolor values.
 
-Перейдите в папку проекта:
+## Quick start
 
-```sh
-cd /path/to/terminal-pet-club
-```
-
-Если сервер ещё не работает, запустите в отдельном терминале:
+You need **Go 1.26+**. The project uses only the Go standard library.
 
 ```sh
+git clone https://github.com/Godsdar/terminal-pet-club.git
+cd terminal-pet-club
 go run ./cmd/server
 ```
 
-Запросы через curl:
-
-```sh
-curl -fsS 'http://127.0.0.1:8080/art?style=neko&mood=happy'
-curl -fsS 'http://127.0.0.1:8080/art?style=chibi&mood=sleepy'
-curl -fsS 'http://127.0.0.1:8080/art?style=mecha&mood=surprised' > mecha.txt
-```
-
-CLI из этой же папки:
-
-```sh
-go run ./cmd/art
-go run ./cmd/art -style chibi -mood surprised
-go run ./cmd/art -style neko -animate
-go run ./cmd/art -style mecha | less
-go run ./cmd/art -style neko > neko.txt
-```
-
-`-animate` включает отдельный экран терминала, скрывает курсор и обновляет фигурку каждые 200 мс после ответа. Градиент плавно движется, каждый восьмой кадр закрывает глаза. Ctrl+C останавливает анимацию и восстанавливает исходный экран и курсор. Для анимации нужен обычный ANSI-терминал с моноширинным шрифтом; цвета рассчитаны на truecolor (например, Terminal.app, iTerm2, Kitty или WezTerm).
-
-## Преобразовать свою картинку
-
-Замените `picture.png` путём к своему файлу:
-
-```sh
-curl -fsS --data-binary @picture.png 'http://127.0.0.1:8080/convert?width=100'
-go run ./cmd/art -image picture.png -width 100 > picture.txt
-```
-
-Максимум 8 MiB и 12 миллионов пикселей. Ширина результата — от 10 до 160 символов, высота — до 80 строк. Соотношение сторон учитывает, что символ терминала примерно вдвое выше своей ширины; при ограничении высоты очень вытянутые изображения сжимаются. Прозрачные пиксели смешиваются с чёрным фоном. Для GIF используется первый кадр. Цвета преобразуются в яркость, а яркость — в символы ` .:-=+*#%@`. Результат зависит от контраста и деталей исходного арта.
-
-## HTTP API
-
-| Запрос | Ответ |
-|---|---|
-| `GET /` | Справка |
-| `GET /art` | Neko с радостным выражением |
-| `GET /art?style=chibi&mood=sleepy&frame=7` | Выбранный персонаж и кадр |
-| `POST /convert?width=80` | ASCII из бинарного тела запроса |
-| `GET /fast` | Ответ через 200 мс |
-| `GET /slow` | Ответ через 1 с |
-
-`style`: `neko`, `bunny`, `fox`, `mecha`; `cat` и `chibi` — алиасы. `mood`: `happy`, `sleepy`, `surprised`. `frame`: целое неотрицательное число; при `frame % 8 == 7` глаза закрыты. Ошибки параметров и изображения: HTTP 400; слишком большой файл или число пикселей: 413. Успешный ответ — `text/plain; charset=utf-8`.
-
-По умолчанию сервер слушает `127.0.0.1:8080`. Другой порт:
-
-```sh
-go run ./cmd/server -addr 127.0.0.1:8090
-go run ./cmd/art -server http://127.0.0.1:8090
-```
-
-## Что читать при изучении Go
-
-- `cmd/server/main.go`: запуск HTTP-сервера; старые таймеры и `select`.
-- `cmd/server/api.go`: маршруты, параметры URL, HTTP-коды, чтение тела запроса.
-- `internal/art/art.go`: `switch`, замена шаблонов, работа с изображениями и циклами.
-- `internal/art/color.go`: плавный градиент, ANSI RGB, экранирование HTML-превью.
-- `cmd/art/main.go`: флаги CLI, HTTP-клиент, `context`, Unix-сигналы, анимация.
-- `cmd/check/main.go`: исходная демонстрация горутин и канала.
-
-Каждый HTTP-запрос может обрабатываться конкурентно стандартным сервером Go. Шаблоны не меняют общие данные, поэтому блокировки для них не нужны. Анимация CLI запрашивает кадры последовательно; для ожидания следующего кадра `select` выбирает между таймером и отменой через Ctrl+C.
-
-Старый эксперимент с двумя конкурентными проверками по-прежнему работает:
-
-```sh
-go run ./cmd/check
-go run ./cmd/check -timeout 500ms
-```
-
-Во втором случае медленный запрос завершится ошибкой таймаута и CLI вернёт ненулевой код. В `check` каждая горутина отправляет ровно один результат, а main получает столько результатов, сколько URL. Поэтому здесь не нужны закрытие канала или WaitGroup.
-
-## Собрать и проверить
-
-```sh
-go test -race ./...
-go vet ./...
-mkdir -p bin
-go build -o bin/ascii-server ./cmd/server
-go build -o bin/art ./cmd/art
-./bin/art -style neko
-```
-
-Собранные программы можно запускать без Go. Это учебная локальная версия; следующий полезный шаг — добавить свои шаблоны или регулировку контраста конвертера.
-
-## Радужные питомцы
+Keep the server running. In a second terminal, from the same directory:
 
 ```sh
 go run ./cmd/art -style neko -animate
-go run ./cmd/art -style bunny -theme pastel -animate
+```
+
+Press **Ctrl+C** to stop and return to your shell. Use a terminal that supports ANSI escape sequences and 24-bit color.
+
+![Rainbow neko output in a terminal-style preview](docs/images/neko-terminal.png)
+
+## Pick a pet
+
+| Pet | Style | Try it |
+| --- | --- | --- |
+| Cat | `neko` | `go run ./cmd/art -style neko` |
+| Bunny | `bunny` | `go run ./cmd/art -style bunny -theme pastel` |
+| Fox | `fox` | `go run ./cmd/art -style fox -mood surprised` |
+| Robot | `mecha` | `go run ./cmd/art -style mecha` |
+
+Choose `happy`, `sleepy`, or `surprised` with `-mood`. The aliases `cat` and `chibi` also work for the cat and bunny.
+
+```sh
+go run ./cmd/art -style bunny -mood sleepy -theme pastel -animate
 go run ./cmd/art -style fox -color always
 ```
 
-`-color auto` — режим по умолчанию: цвет включается для символьного устройства stdout, если `TERM` не равен `dumb` и переменная `NO_COLOR` отсутствует. При обычном перенаправлении в файл или pipe управляющих кодов цвета нет. `-color always` принудительно включает цвет; `-color never` отключает. `-theme rainbow` — радужная палитра, `-theme pastel` — мягкая пастельная. При `-animate` управляющие коды экрана используются независимо от режима цвета; этот флаг предназначен для терминала.
+## Colors and pipes
 
-Сервер также может отдавать ANSI-цвета напрямую:
+The default theme is `rainbow`. Use `-theme pastel` for softer colors.
+
+| Option | Behavior |
+| --- | --- |
+| `-color auto` | Enables color for a character-device stdout unless `NO_COLOR` is set or `TERM=dumb`. Default. |
+| `-color always` | Forces ANSI truecolor output. |
+| `-color never` | Prints plain text. |
+
+Redirecting ordinary output to a file or pipe leaves out the color codes:
+
+```sh
+go run ./cmd/art -style neko > neko.txt
+go run ./cmd/art -style fox | less
+```
+
+Use `-animate` in an interactive terminal. It uses screen-control sequences even when colors are disabled.
+
+## Turn your own image into ASCII
+
+The converter accepts PNG, JPEG, and GIF. It maps image brightness to characters and can apply the same color themes to the result.
+
+```sh
+go run ./cmd/art -image picture.png -width 100 -color always
+go run ./cmd/art -image picture.png -width 100 > picture.txt
+```
+
+Uploads are limited to **8 MiB** and **12 million pixels**. Output width is 10 to 160 characters, with a maximum height of 80 lines. Transparent pixels blend onto black; GIF conversion uses the first frame. Very tall images are compressed when they reach the height limit.
+
+## Use curl
+
+Get a colored pet without the CLI:
 
 ```sh
 curl -fsS 'http://127.0.0.1:8080/art?style=fox&color=rainbow'
-curl -fsS 'http://127.0.0.1:8080/art?style=bunny&color=pastel'
+curl -fsS 'http://127.0.0.1:8080/art?style=bunny&mood=sleepy&color=pastel'
 ```
 
-Параметр HTTP `color`: `none` (по умолчанию), `rainbow`, `pastel`. Для браузера используйте `/preview?style=neko`: он показывает тот же градиент через HTML, без ANSI-кодов. Параметры `mood` и `frame` работают и в превью; браузерное превью показывает один кадр.
+Convert an image by sending its bytes as the request body:
+
+```sh
+curl -fsS --data-binary @picture.png \
+  'http://127.0.0.1:8080/convert?width=100' > picture.txt
+```
+
+## HTTP API
+
+| Route | Response |
+| --- | --- |
+| `GET /` | Endpoint reference. |
+| `GET /art` | Plain-text cat artwork by default. |
+| `GET /preview?style=neko` | A single colored frame in the browser. |
+| `POST /convert?width=80` | ASCII from a raw PNG, JPEG, or GIF request body. |
+| `GET /fast` | A response after 200 ms for the concurrency demo. |
+| `GET /slow` | A response after one second for the concurrency demo. |
+
+`/art` and `/preview` accept `style`, `mood`, and a nonnegative integer `frame`. The `color` parameter accepts `none`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `rainbow`.
+
+Successful `/art` and `/convert` responses use `text/plain; charset=utf-8`. Invalid parameters or images return **400**; oversized uploads or image dimensions return **413**.
+
+The server listens on `127.0.0.1:8080` by default. To use another port:
+
+```sh
+go run ./cmd/server -addr 127.0.0.1:8090
+go run ./cmd/art -server http://127.0.0.1:8090 -style neko
+```
+
+## Build and check
+
+```sh
+mkdir -p bin
+go build -o bin/ascii-server ./cmd/server
+go build -o bin/art ./cmd/art
+go test -race ./...
+go vet ./...
+```
+
+Run `./bin/ascii-server` in one terminal and `./bin/art -style neko -animate` in another. The compiled binaries run without a Go installation.
+
+The CLI is intended for macOS and Linux. It has been tested on macOS.
+
+## Source map
+
+| Path | Purpose |
+| --- | --- |
+| `cmd/server/` | HTTP server and request handlers. |
+| `cmd/art/` | Terminal client, flags, and signal handling. |
+| `internal/art/` | Pet templates, color gradients, and image conversion. |
+| `cmd/check/` | A separate concurrent URL-checking demo. |
+
+The pets are built from text templates. Image conversion works with files you provide; it does not generate new illustrations.
