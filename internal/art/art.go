@@ -9,12 +9,15 @@ import (
 
 // Portrait keeps every generated frame the same size for terminal animation.
 func Portrait(style, mood string, frame int) (string, error) {
-	eyes, mouth := "o", "w"
+	eyes, mouth := "o", "_"
+	if style == "makima" {
+		eyes = "@"
+	}
 	switch mood {
 	case "happy":
-		eyes = "^"
+		mouth = "v"
 	case "sleepy":
-		eyes, mouth = "-", "_"
+		eyes = "-"
 	case "surprised":
 		eyes, mouth = "O", "o"
 	default:
@@ -25,46 +28,66 @@ func Portrait(style, mood string, frame int) (string, error) {
 	}
 	var template string
 	switch style {
-	case "neko", "cat":
-		template = `       .                    +
-            /\_/\
-           ( {{E}}.{{E}} )
-           / >{{M}}< \
-          (  / \  )
-           \(___)/   ~
-        .   "   "       *
+	case "makima":
+		template = `                  _..---.._
+              .-'///////////'-.
+            .'///////////////// '.
+           ///////////////////////\
+          ///////.'  /|  './////////|
+         /////// /  / |   |\////////|
+         ////// /  /  |   | \///////|
+         ///// /__/___|___|__\//////|
+         |///|  _____     _____ |///|
+         |///| / .-. \   / .-. \|///|
+         |///| |( {{E}} )|   |( {{E}} )|///|
+         |///|  '---'     '---' |///|
+          \//|        .        |// /
+           \ |        '        | /
+            \|       {{M}}        |/
+             '.               .'
+          .--. '._         _.' .--.
+         (////)   '---.---'    (////)
+          (//)       | |       (//)
+         (////)  .---| |---.  (////)
+          (//) .'  /\   /\  '. (//)
+         (////)/  /  \ /  \  \(////)
+          (//)/__/   /V\   \__\(//)
+           \/ |     \ /     | \/
+              |      V      |
+              |      |      |
+              |      |      |
 `
-	case "chibi", "bunny":
-		template = `       +                    .
-             /\ /\
-            (  V  )
-           ( {{E}}.{{E}} )
-           /  {{M}}  \
-          (  / \  )
-           (_/ \_)     *
-`
-	case "mecha":
-		template = `        .                 +
-            \  |  /
-             [===]
-            [{{E}}-{{E}}]
-          /| [{{M}}] |\
-         (_|=====|_)
-            |_ _|
-            |_|_|     *
-`
-	case "fox":
-		template = `       .                    *
-            /\   /\
-           /  \_/  \
-           \ {{E}}.{{E}} /
-            \ {{M}} /
-          / (   ) \___
-         (_/(___)\___~)
-        +   "   "       .
+	case "reze":
+		template = `                 _..-----.._
+             .-'////////////'-.
+           .'//////////////////'.
+          ///////////////////////\
+         ///////.'      './////////|
+        /////// /   /|    \////////|
+        ////// /   / |     \///////|
+        ///// /   /  |      \//////|
+        |/// /___/   |___    \/////|
+        |///|  ____      '---.\////|
+        |///| / .-.\      __  |////|
+        |///| |  {{E}} |     /{{E}} \ |////|
+        |///|  '---'      '-'  |////|
+        |///|       .         |////|
+        |///|       '         |////|
+         \//|      {{M}}          |/// /
+          \//'.             .'/// /
+           \///'._       _.'//// /
+            '-----|-----|------'
+                  |=====|--o
+              .---|     |---.
+             /    '.___.'    \
+            / /\           /\ \
+           / /  |         |  \ \
+          / /   |         |   \ \
+         /_/    |         |    \_\
+                |_________|
 `
 	default:
-		return "", fmt.Errorf("unknown style: use neko, bunny, fox, mecha (chibi is an alias for bunny)")
+		return "", fmt.Errorf("unknown style: use makima, reze")
 	}
 	return strings.NewReplacer("{{E}}", eyes, "{{M}}", mouth).Replace(template), nil
 }

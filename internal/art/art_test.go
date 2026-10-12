@@ -8,7 +8,7 @@ import (
 )
 
 func TestPortraitsAndBlink(t *testing.T) {
-	for _, style := range []string{"neko", "chibi", "bunny", "fox", "mecha"} {
+	for _, style := range []string{"makima", "reze"} {
 		awake, err := Portrait(style, "happy", 0)
 		if err != nil {
 			t.Fatal(err)
@@ -43,6 +43,27 @@ func TestColorize(t *testing.T) {
 	}
 	if _, err := Colorize(text, "unknown", 0, false); err == nil {
 		t.Fatal("invalid color should fail")
+	}
+}
+
+func TestTokyoNightPalette(t *testing.T) {
+	r, g, b := gradient(0, 0, 0, "tokyonight")
+	if r != 122 || g != 162 || b != 247 {
+		t.Fatalf("expected Tokyo Night blue, got %d %d %d", r, g, b)
+	}
+	for frame := range 64 {
+		for _, point := range [][2]int{{0, 0}, {30, 10}, {50, 26}} {
+			r, g, b := gradient(point[0], point[1], frame, "tokyonight")
+			for _, value := range []int{r, g, b} {
+				if value < 0 || value > 255 {
+					t.Fatalf("invalid RGB component: %d", value)
+				}
+			}
+		}
+	}
+	colored, err := Colorize("Makima", "tokyonight", 0, false)
+	if err != nil || !strings.Contains(colored, "\x1b[38;2;122;162;247m") {
+		t.Fatal("Tokyo Night must be available in ANSI output")
 	}
 }
 

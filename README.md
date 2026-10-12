@@ -1,50 +1,49 @@
-# Terminal Pet Club
+# anime-ascii
 
-Small ASCII pets for your Unix terminal, with rainbow gradients, soft pastel colors, and blinking eyes. A Go HTTP server supplies the artwork; the CLI brings it into your terminal.
+ASCII portraits of Makima and Reze from Chainsaw Man for your Unix terminal, in the Tokyo Night palette. A Go HTTP server supplies the artwork; the CLI adds ANSI truecolor and optional blinking eyes.
 
-![Rainbow cat, pastel bunny, and rainbow fox CLI output](docs/images/pets.png)
+![Makima and Reze ASCII portraits in Tokyo Night colors](docs/images/anime-gallery.png)
 
-The previews above and below render captured CLI output, including its ANSI truecolor values.
+The previews render actual captured CLI output at 3× resolution. For sharp zooming, open the vector versions: [portrait gallery](docs/images/anime-gallery.svg) and [Makima terminal](docs/images/makima-terminal.svg).
 
 ## Quick start
 
 You need **Go 1.26+**. The project uses only the Go standard library.
 
 ```sh
-git clone https://github.com/Godsdar/terminal-pet-club.git
-cd terminal-pet-club
+git clone https://github.com/Godsdar/anime-ascii.git
+cd anime-ascii
 go run ./cmd/server
 ```
 
 Keep the server running. In a second terminal, from the same directory:
 
 ```sh
-go run ./cmd/art -style neko -animate
+go run ./cmd/art -style makima -animate
 ```
 
 Press **Ctrl+C** to stop and return to your shell. Use a terminal that supports ANSI escape sequences and 24-bit color.
 
-![Rainbow neko output in a terminal-style preview](docs/images/neko-terminal.png)
+![Makima ASCII portrait in a high-resolution terminal preview](docs/images/makima-terminal.png)
 
-## Pick a pet
+## Choose a character
 
-| Pet | Style | Try it |
+| Character | Style | Details |
 | --- | --- | --- |
-| Cat | `neko` | `go run ./cmd/art -style neko` |
-| Bunny | `bunny` | `go run ./cmd/art -style bunny -theme pastel` |
-| Fox | `fox` | `go run ./cmd/art -style fox -mood surprised` |
-| Robot | `mecha` | `go run ./cmd/art -style mecha` |
-
-Choose `happy`, `sleepy`, or `surprised` with `-mood`. The aliases `cat` and `chibi` also work for the cat and bunny.
+| Makima | `makima` | Braided hair, ringed eyes, shirt and tie. Default. |
+| Reze | `reze` | Short hair, choker with a pull ring, sleeveless top. |
 
 ```sh
-go run ./cmd/art -style bunny -mood sleepy -theme pastel -animate
-go run ./cmd/art -style fox -color always
+go run ./cmd/art -style makima -color always
+go run ./cmd/art -style reze -color always
+go run ./cmd/art -style reze -mood sleepy -animate
 ```
+
+Use `-mood happy`, `-mood sleepy`, or `-mood surprised` to change the expression.
 
 ## Colors and pipes
 
-The default theme is `rainbow`. Use `-theme pastel` for softer colors.
+The default theme is `tokyonight`: blue (`#7aa2f7`), purple (`#bb9af7`), cyan (`#7dcfff`), and pink (`#f7768e`). The previews use Tokyo Night background colors as well. The CLI colors the text and keeps your terminal background. `-theme rainbow` and `-theme pastel` remain available.
 
 | Option | Behavior |
 | --- | --- |
@@ -55,8 +54,8 @@ The default theme is `rainbow`. Use `-theme pastel` for softer colors.
 Redirecting ordinary output to a file or pipe leaves out the color codes:
 
 ```sh
-go run ./cmd/art -style neko > neko.txt
-go run ./cmd/art -style fox | less
+go run ./cmd/art -style makima > makima.txt
+go run ./cmd/art -style reze | less
 ```
 
 Use `-animate` in an interactive terminal. It uses screen-control sequences even when colors are disabled.
@@ -74,11 +73,11 @@ Uploads are limited to **8 MiB** and **12 million pixels**. Output width is 10 t
 
 ## Use curl
 
-Get a colored pet without the CLI:
+Get a colored portrait without the CLI:
 
 ```sh
-curl -fsS 'http://127.0.0.1:8080/art?style=fox&color=rainbow'
-curl -fsS 'http://127.0.0.1:8080/art?style=bunny&mood=sleepy&color=pastel'
+curl -fsS 'http://127.0.0.1:8080/art?style=makima&color=tokyonight'
+curl -fsS 'http://127.0.0.1:8080/art?style=reze&mood=happy&color=tokyonight'
 ```
 
 Convert an image by sending its bytes as the request body:
@@ -93,13 +92,13 @@ curl -fsS --data-binary @picture.png \
 | Route | Response |
 | --- | --- |
 | `GET /` | Endpoint reference. |
-| `GET /art` | Plain-text cat artwork by default. |
-| `GET /preview?style=neko` | A single colored frame in the browser. |
+| `GET /art` | Plain-text Makima portrait by default. |
+| `GET /preview?style=makima` | A single colored frame in the browser. |
 | `POST /convert?width=80` | ASCII from a raw PNG, JPEG, or GIF request body. |
 | `GET /fast` | A response after 200 ms for the concurrency demo. |
 | `GET /slow` | A response after one second for the concurrency demo. |
 
-`/art` and `/preview` accept `style`, `mood`, and a nonnegative integer `frame`. The `color` parameter accepts `none`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `rainbow`.
+`/art` and `/preview` accept `style`, `mood`, and a nonnegative integer `frame`. The `color` parameter accepts `none`, `tokyonight`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `tokyonight`.
 
 Successful `/art` and `/convert` responses use `text/plain; charset=utf-8`. Invalid parameters or images return **400**; oversized uploads or image dimensions return **413**.
 
@@ -107,7 +106,7 @@ The server listens on `127.0.0.1:8080` by default. To use another port:
 
 ```sh
 go run ./cmd/server -addr 127.0.0.1:8090
-go run ./cmd/art -server http://127.0.0.1:8090 -style neko
+go run ./cmd/art -server http://127.0.0.1:8090 -style makima
 ```
 
 ## Build and check
@@ -120,7 +119,7 @@ go test -race ./...
 go vet ./...
 ```
 
-Run `./bin/ascii-server` in one terminal and `./bin/art -style neko -animate` in another. The compiled binaries run without a Go installation.
+Run `./bin/ascii-server` in one terminal and `./bin/art -style makima -animate` in another. The compiled binaries run without a Go installation.
 
 The CLI is intended for macOS and Linux. It has been tested on macOS.
 
@@ -130,7 +129,9 @@ The CLI is intended for macOS and Linux. It has been tested on macOS.
 | --- | --- |
 | `cmd/server/` | HTTP server and request handlers. |
 | `cmd/art/` | Terminal client, flags, and signal handling. |
-| `internal/art/` | Pet templates, color gradients, and image conversion. |
+| `internal/art/` | Character templates, color gradients, and image conversion. |
 | `cmd/check/` | A separate concurrent URL-checking demo. |
 
-The pets are built from text templates. Image conversion works with files you provide; it does not generate new illustrations.
+The portraits are built from text templates. Image conversion works with files you provide; it does not generate new illustrations.
+
+Characters: Makima and Reze from Chainsaw Man, by Tatsuki Fujimoto.

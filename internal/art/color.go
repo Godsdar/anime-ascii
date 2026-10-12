@@ -9,8 +9,8 @@ import (
 
 // Colorize uses the same smooth gradient for ANSI terminals and HTML previews.
 func Colorize(text, theme string, frame int, preview bool) (string, error) {
-	if theme != "rainbow" && theme != "pastel" && theme != "none" {
-		return "", fmt.Errorf("unknown color: use rainbow, pastel, none")
+	if theme != "tokyonight" && theme != "rainbow" && theme != "pastel" && theme != "none" {
+		return "", fmt.Errorf("unknown color: use tokyonight, rainbow, pastel, none")
 	}
 	if theme == "none" {
 		if preview {
@@ -44,6 +44,23 @@ func Colorize(text, theme string, frame int, preview bool) (string, error) {
 }
 
 func gradient(x, y, frame int, theme string) (int, int, int) {
+	if theme == "tokyonight" {
+		colors := [][3]int{
+			{122, 162, 247}, {187, 154, 247}, {247, 118, 142},
+			{187, 154, 247}, {125, 207, 255}, {122, 162, 247},
+		}
+		position := float64(x)*0.025 + float64(y)*0.055 + float64(frame)/64*float64(len(colors))
+		position = math.Mod(position, float64(len(colors)))
+		index := int(position)
+		fraction := position - float64(index)
+		// Smoothstep gives adjacent palette segments a gentle transition.
+		fraction = fraction * fraction * (3 - 2*fraction)
+		left, right := colors[index], colors[(index+1)%len(colors)]
+		mix := func(channel int) int {
+			return int(math.Round(float64(left[channel])*(1-fraction) + float64(right[channel])*fraction))
+		}
+		return mix(0), mix(1), mix(2)
+	}
 	phase := float64(x)*0.17 + float64(y)*0.24 + float64(frame)*2*math.Pi/64
 	mid, amplitude := 170.0, 80.0
 	if theme == "pastel" {

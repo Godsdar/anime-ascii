@@ -16,10 +16,10 @@ func TestRoutes(t *testing.T) {
 		code int
 	}{
 		{"/art", 200},
-		{"/art?style=fox&color=rainbow", 200},
-		{"/preview?style=bunny&color=pastel", 200},
+		{"/art?style=makima&color=tokyonight", 200},
+		{"/preview?style=reze&color=tokyonight", 200},
 		{"/art?color=unknown", 400},
-		{"/art?style=mecha&mood=surprised&frame=7", 200},
+		{"/art?style=reze&mood=surprised&frame=7", 200},
 		{"/art?style=unknown", 400},
 		{"/art?mood=unknown", 400},
 		{"/art?frame=-1", 400},

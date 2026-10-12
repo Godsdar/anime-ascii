@@ -31,6 +31,6 @@ func main() {
 		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
-	log.Printf("Anime ASCII Club: http://%s/art — Ctrl+C to stop", *addr)
+	log.Printf("Anime ASCII: http://%s/art — Ctrl+C to stop", *addr)
 	log.Fatal(server.ListenAndServe())
 }

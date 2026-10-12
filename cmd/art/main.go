@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"example.com/go-lab/internal/art"
+	"github.com/Godsdar/anime-ascii/internal/art"
 )
 
 func main() {
@@ -25,9 +25,9 @@ func main() {
 
 func run() error {
 	server := flag.String("server", "http://127.0.0.1:8080", "ASCII server URL")
-	style := flag.String("style", "neko", "neko, bunny, fox, mecha")
+	style := flag.String("style", "makima", "makima, reze")
 	colorMode := flag.String("color", "auto", "auto, always, never")
-	theme := flag.String("theme", "rainbow", "rainbow, pastel")
+	theme := flag.String("theme", "tokyonight", "tokyonight, rainbow, pastel")
 	mood := flag.String("mood", "happy", "happy, sleepy, surprised")
 	imagePath := flag.String("image", "", "PNG/JPEG/GIF file to convert")
 	width := flag.Int("width", 80, "image output width: 10..160")
@@ -36,8 +36,8 @@ func run() error {
 	if *colorMode != "auto" && *colorMode != "always" && *colorMode != "never" {
 		return fmt.Errorf("color must be auto, always or never")
 	}
-	if *theme != "rainbow" && *theme != "pastel" {
-		return fmt.Errorf("theme must be rainbow or pastel")
+	if *theme != "tokyonight" && *theme != "rainbow" && *theme != "pastel" {
+		return fmt.Errorf("theme must be tokyonight, rainbow or pastel")
 	}
 	useColor := *colorMode == "always"
 	if *colorMode == "auto" {
