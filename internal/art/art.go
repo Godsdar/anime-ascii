@@ -16,9 +16,9 @@ func Portrait(style string, width int) (string, error) {
 		return "", fmt.Errorf("unknown style: use makima, reze, denji")
 	}
 	switch width {
-	case 80, 100, 160, 200, 240:
+	case 32, 40, 48, 64, 80, 100, 160, 200, 240:
 	default:
-		return "", fmt.Errorf("portrait width must be 80, 100, 160, 200 or 240")
+		return "", fmt.Errorf("portrait width must be 32, 40, 48, 64, 80, 100, 160, 200 or 240")
 	}
 	data, err := portraits.ReadFile(fmt.Sprintf("portraits/%s-%d.txt", style, width))
 	return string(data), err
@@ -30,6 +30,10 @@ func Render(img image.Image, width int) string {
 }
 
 func RenderAdjusted(img image.Image, width int, invert bool, contrast float64) string {
+	return RenderDetailed(img, width, invert, contrast, false)
+}
+
+func RenderDetailed(img image.Image, width int, invert bool, contrast float64, edges bool) string {
 	b := img.Bounds()
 	height := max(1, min(180, int(math.Round(float64(b.Dy())/float64(b.Dx())*float64(width)*0.5))))
 	const palette = " .:-=+*#%@"
@@ -41,13 +45,19 @@ func RenderAdjusted(img image.Image, width int, invert bool, contrast float64) s
 			x0 := b.Min.X + x*b.Dx()/width
 			x1 := min(b.Max.X, max(x0+1, b.Min.X+(x+1)*b.Dx()/width))
 			var sum float64
+			minimum := 65535.0
 			for sy := y0; sy < y1; sy++ {
 				for sx := x0; sx < x1; sx++ {
 					r, g, blue, _ := img.At(sx, sy).RGBA()
-					sum += 0.2126*float64(r) + 0.7152*float64(g) + 0.0722*float64(blue)
+					value := 0.2126*float64(r) + 0.7152*float64(g) + 0.0722*float64(blue)
+					sum += value
+					minimum = min(minimum, value)
 				}
 			}
 			brightness := sum / float64((x1-x0)*(y1-y0)) / 65535
+			if edges {
+				brightness = 0.35*brightness + 0.65*minimum/65535
+			}
 			brightness = max(0, min(1, (brightness-0.5)*contrast+0.5))
 			if invert {
 				brightness = 1 - brightness

@@ -31,7 +31,7 @@ func run() error {
 	colorMode := flag.String("color", "auto", "auto, always, never")
 	theme := flag.String("theme", "tokyonight", "tokyonight, rainbow, pastel")
 	imagePath := flag.String("image", "", "PNG/JPEG/GIF file to convert")
-	width := flag.Int("width", 160, "portrait columns: 80,100,160,200,240; images: 10..240")
+	width := flag.Int("width", 0, "0: compact auto-fit; portraits: 32,40,48,64,80,100,160,200,240; images: 10..240")
 	invert := flag.Bool("invert", false, "dense characters for dark image pixels")
 	contrast := flag.Float64("contrast", 1, "image contrast multiplier: 0.1..3")
 	animate := flag.Bool("animate", false, "animate the color gradient; Ctrl+C to stop")
@@ -57,6 +57,18 @@ func run() error {
 	}
 	if flag.NArg() != 0 {
 		return fmt.Errorf("unexpected arguments; use -help for options")
+	}
+	if *width == 0 {
+		columns, rows := terminalSize()
+		if *imagePath == "" {
+			var err error
+			*width, err = compactWidth(*style, columns, rows)
+			if err != nil {
+				return err
+			}
+		} else {
+			*width = 32
+		}
 	}
 	if *width < 10 || *width > 240 {
 		return fmt.Errorf("width must be between 10 and 240")
@@ -150,7 +162,13 @@ func run() error {
 			}
 		}
 		if useColor {
-			colored, err := art.Colorize(string(data), *theme, frame, false)
+			var colored string
+			var err error
+			if *imagePath == "" {
+				colored, err = art.ColorizePortrait(string(data), *theme, frame, *style, false)
+			} else {
+				colored, err = art.Colorize(string(data), *theme, frame, false)
+			}
 			if err != nil {
 				return err
 			}

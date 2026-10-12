@@ -29,6 +29,7 @@ func run() error {
 	invert := flag.Bool("invert", false, "render dark source pixels as dense characters")
 	contrast := flag.Float64("contrast", 1, "contrast multiplier: 0.1..3")
 	crop := flag.String("crop", "", "optional source rectangle: left,top,right,bottom")
+	edges := flag.Bool("edges", false, "preserve thin dark lines and eye contours")
 	flag.Parse()
 	if *input == "" || flag.NArg() != 0 || *width < 10 || *width > 240 || math.IsNaN(*contrast) || *contrast < 0.1 || *contrast > 3 {
 		return fmt.Errorf("use -image FILE, -width 10..240 and -contrast 0.1..3")
@@ -75,6 +76,6 @@ func run() error {
 		draw.Draw(cropped, cropped.Bounds(), img, rect.Min, draw.Src)
 		img = cropped
 	}
-	_, err = fmt.Print(art.RenderAdjusted(img, *width, *invert, *contrast))
+	_, err = fmt.Print(art.RenderDetailed(img, *width, *invert, *contrast, *edges))
 	return err
 }

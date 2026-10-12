@@ -11,7 +11,7 @@ func TestConvertedPortraits(t *testing.T) {
 	var previous string
 	for _, style := range []string{"makima", "reze", "denji"} {
 		previousHeight := 0
-		for _, width := range []int{80, 100, 160, 200, 240} {
+		for _, width := range []int{32, 40, 48, 64, 80, 100, 160, 200, 240} {
 			text, err := Portrait(style, width)
 			if err != nil {
 				t.Fatal(err)
@@ -65,6 +65,33 @@ func TestColorize(t *testing.T) {
 	}
 	if _, err := Colorize(text, "unknown", 0, false); err == nil {
 		t.Fatal("invalid color should fail")
+	}
+}
+
+func TestPupilsSurviveCompactConversion(t *testing.T) {
+	for _, tc := range []struct {
+		style                     string
+		sourceWidth, sourceHeight int
+		pupils                    [][2]int
+	}{
+		{"makima", 620, 620, [][2]int{{178, 220}, {450, 220}}},
+		{"reze", 515, 515, [][2]int{{71, 202}, {313, 140}}},
+		{"denji", 355, 365, [][2]int{{80, 161}, {211, 134}}},
+	} {
+		for _, width := range []int{32, 40, 48, 64, 80, 100, 160, 200, 240} {
+			text, err := Portrait(tc.style, width)
+			if err != nil {
+				t.Fatal(err)
+			}
+			lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
+			for _, pupil := range tc.pupils {
+				x := int((float64(pupil[0]) + 0.5) * float64(width) / float64(tc.sourceWidth))
+				y := int((float64(pupil[1]) + 0.5) * float64(len(lines)) / float64(tc.sourceHeight))
+				if lines[y][x] != '@' || !eyePixel(tc.style, x, y, width, len(lines)) {
+					t.Fatalf("%s/%d: a source pupil was lost or is outside its eye accent", tc.style, width)
+				}
+			}
+		}
 	}
 }
 

@@ -9,6 +9,14 @@ import (
 
 // Colorize uses the same smooth gradient for ANSI terminals and HTML previews.
 func Colorize(text, theme string, frame int, preview bool) (string, error) {
+	return colorize(text, theme, frame, "", preview)
+}
+
+func ColorizePortrait(text, theme string, frame int, style string, preview bool) (string, error) {
+	return colorize(text, theme, frame, style, preview)
+}
+
+func colorize(text, theme string, frame int, style string, preview bool) (string, error) {
 	if theme != "tokyonight" && theme != "rainbow" && theme != "pastel" && theme != "none" {
 		return "", fmt.Errorf("unknown color: use tokyonight, rainbow, pastel, none")
 	}
@@ -19,6 +27,11 @@ func Colorize(text, theme string, frame int, preview bool) (string, error) {
 		return text, nil
 	}
 	var out strings.Builder
+	width := strings.IndexByte(text, '\n')
+	if width < 0 {
+		width = len(text)
+	}
+	height := max(1, strings.Count(text, "\n"))
 	for y, line := range strings.SplitAfter(text, "\n") {
 		for x, ch := range line {
 			if ch == ' ' || ch == '\n' {
@@ -26,6 +39,12 @@ func Colorize(text, theme string, frame int, preview bool) (string, error) {
 				continue
 			}
 			r, g, b := gradient(x, y, frame, theme)
+			if eyePixel(style, x, y, width, height) {
+				r, g, b = 224, 175, 104
+				if style == "reze" {
+					r, g, b = 158, 206, 106
+				}
+			}
 			if preview {
 				fmt.Fprintf(&out, `<span style="color:rgb(%d,%d,%d)">%s</span>`, r, g, b, html.EscapeString(string(ch)))
 			} else {
@@ -70,4 +89,33 @@ func gradient(x, y, frame int, theme string) (int, int, int) {
 		return int(math.Round(mid + amplitude*math.Sin(phase+offset)))
 	}
 	return channel(0), channel(2 * math.Pi / 3), channel(4 * math.Pi / 3)
+}
+
+// Eye rectangles are measured on the credited source crops, not drawn into the art.
+func eyePixel(style string, x, y, width, height int) bool {
+	var regions [][4]int
+	var sourceWidth, sourceHeight int
+	switch style {
+	case "makima":
+		sourceWidth, sourceHeight = 620, 620
+		regions = [][4]int{{80, 175, 260, 280}, {350, 175, 540, 280}}
+	case "reze":
+		sourceWidth, sourceHeight = 515, 515
+		regions = [][4]int{{35, 160, 160, 250}, {235, 80, 385, 180}}
+	case "denji":
+		sourceWidth, sourceHeight = 355, 365
+		regions = [][4]int{{22, 117, 147, 200}, {163, 87, 284, 164}}
+	default:
+		return false
+	}
+	for _, region := range regions {
+		left := region[0] * width / sourceWidth
+		right := (region[2]*width + sourceWidth - 1) / sourceWidth
+		top := region[1] * height / sourceHeight
+		bottom := (region[3]*height + sourceHeight - 1) / sourceHeight
+		if x >= left && x < right && y >= top && y < bottom {
+			return true
+		}
+	}
+	return false
 }

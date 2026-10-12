@@ -16,6 +16,8 @@ func TestRoutes(t *testing.T) {
 		code int
 	}{
 		{"/art", 200},
+		{"/art?style=reze&width=32", 200},
+		{"/preview?style=makima&width=40", 200},
 		{"/art?style=denji&width=240", 200},
 		{"/art?style=makima&width=160", 200},
 		{"/art?width=161", 400},

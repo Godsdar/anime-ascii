@@ -4,7 +4,7 @@ Makima, Reze and Denji illustrations converted into ASCII for your Unix terminal
 
 ![Makima, Reze and Denji ASCII portraits in Tokyo Night colors](docs/images/anime-gallery.png)
 
-The portraits were converted from illustrations by [eastman](https://wall.alphacoders.com/big.php?i=1284789), [SpringHaru](https://twiman.net/user/1348570965135949830/illust/1970415339994521708), and an [official Denji character visual](https://natalie.mu/eiga/gallery/news/616805/2555644). The previews render actual captured CLI output at 3× resolution. The gallery uses 160-column portraits; individual previews use 240 columns. For sharp zooming, open the vector versions: [portrait gallery](docs/images/anime-gallery.svg), [Makima terminal](docs/images/makima-terminal.svg), [Reze terminal](docs/images/reze-terminal.svg), and [Denji terminal](docs/images/denji-terminal.svg).
+The portraits were converted from illustrations by [eastman](https://wall.alphacoders.com/big.php?i=1284789), [SpringHaru](https://twiman.net/user/1348570965135949830/illust/1970415339994521708), and a [Denji face study by masoq](https://twitter.com/masoq095/status/1645434593502437376). The previews render actual captured CLI output at 3× resolution. The gallery shows compact 40-column portraits; vector detail previews use 240 columns. For sharp zooming, open the vector versions: [portrait gallery](docs/images/anime-gallery.svg), [Makima terminal](docs/images/makima-terminal.svg), [Reze terminal](docs/images/reze-terminal.svg), and [Denji terminal](docs/images/denji-terminal.svg).
 
 ## Install and run
 
@@ -15,14 +15,14 @@ GOBIN="$HOME/.local/bin" go install github.com/Godsdar/anime-ascii/cmd/anime-asc
 export PATH="$HOME/.local/bin:$PATH"
 
 anime-ascii makima
-anime-ascii reze -width 240 -color always | less -RS
+anime-ascii reze
 ```
 
 The installed binary runs from any directory without Go or an HTTP server. It includes Makima, Reze and Denji at every supported resolution. Put `~/.local/bin` on your shell's `PATH` to keep the command available in new terminals.
 
-Use a terminal that supports ANSI escape sequences and 24-bit color. The default is 160 columns. Use `-width 80` for a compact view or `-width 240` for the most detail. `less -RS` preserves colors and lets you scroll vertically and horizontally.
+Use a terminal that supports ANSI escape sequences and 24-bit color. By default, the CLI chooses a compact size from 32 to 48 columns based on the terminal width and height. It leaves room for the prompt. In a standard 80×24 terminal, Makima and Reze use 40 columns and 20 rows. Use `-width 40` to choose a compact size explicitly or `-width 240` for the most detail. `less -RS` preserves colors and lets you scroll vertically and horizontally.
 
-![Makima ASCII portrait in a high-resolution terminal preview](docs/images/makima-terminal.png)
+[Open the optional 240-column Makima detail](docs/images/makima-terminal.svg).
 
 ## Choose a character
 
@@ -30,7 +30,7 @@ Use a terminal that supports ANSI escape sequences and 24-bit color. The default
 | --- | --- | --- |
 | Makima | `makima` | Converted portrait by eastman. Default. |
 | Reze | `reze` | Converted illustration by SpringHaru. |
-| Denji | `denji` | Chainsaw Man form, converted from a film character visual. |
+| Denji | `denji` | Human portrait with both eyes open, converted from a face study by masoq. |
 
 ```sh
 anime-ascii makima -color always
@@ -41,24 +41,28 @@ anime-ascii denji -width 240 -color always
 
 The facial expressions come from the source images. The portraits are static. Optional `-animate` moves the color gradient; it requires a terminal tall enough to hold the entire portrait. Ctrl+C returns to your shell.
 
+## Readable eyes
+
+Every built-in portrait is a close face crop with both eyes visible. Thin dark contours survive downsampling; the source pupil centers remain distinct `@` characters at every supported width. Eye regions use Tokyo Night gold or green accents so the pupils stand apart from the surrounding gradient.
+
+The smallest supported portrait is 32 columns. Automatic sizing keeps portraits compact without shrinking below that minimum. Denji uses his human form so his eyes remain visible.
+
 ## Resolution
 
-Choose `-width 80`, `100`, `160`, `200`, or `240`. Each version is converted directly from the source image. The height grows with the width to preserve the portrait proportions.
+The default `-width 0` automatically selects a small portrait. Explicit widths are `32`, `40`, `48`, `64`, `80`, `100`, `160`, `200`, or `240`. Each version is converted directly from the source image. The height grows with the width to preserve the portrait proportions.
 
-| Character | Default (160 columns) | Detailed (240 columns) |
+| Character | Compact (40 columns) | Detailed (240 columns) |
 | --- | --- | --- |
-| Makima | 160 × 108 | 240 × 162 |
-| Reze | 160 × 112 | 240 × 168 |
-| Denji | 160 × 57 | 240 × 85 |
+| Makima | 40 × 20 | 240 × 120 |
+| Reze | 40 × 20 | 240 × 120 |
+| Denji | 40 × 21 | 240 × 123 |
 
 ```sh
 anime-ascii makima -width 240 -color always
 anime-ascii denji -width 240 -color always | less -R
 ```
 
-![Denji converted into detailed ASCII](docs/images/denji-terminal.png)
-
-[Open the vector Denji preview](docs/images/denji-terminal.svg).
+[Open the optional 240-column Denji detail](docs/images/denji-terminal.svg).
 
 ## Colors and pipes
 
@@ -143,7 +147,7 @@ curl -fsS --data-binary @picture.png \
 | `GET /fast` | A response after 200 ms for the concurrency demo. |
 | `GET /slow` | A response after one second for the concurrency demo. |
 
-`/art` and `/preview` accept `style`, portrait `width` (80/100/160/200/240), and a nonnegative integer `frame` for the color gradient. The `color` parameter accepts `none`, `tokyonight`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `tokyonight`.
+`/art` and `/preview` accept `style`, portrait `width` (32/40/48/64/80/100/160/200/240; default 40), and a nonnegative integer `frame` for the color gradient. The `color` parameter accepts `none`, `tokyonight`, `rainbow`, or `pastel`. `/art` defaults to `none`; `/preview` defaults to `tokyonight`.
 
 Successful `/art` and `/convert` responses use `text/plain; charset=utf-8`. Invalid parameters or images return **400**; oversized uploads or image dimensions return **413**.
 
