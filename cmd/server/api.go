@@ -60,7 +60,19 @@ func portrait(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	output, err := art.Portrait(style, width)
+	mode := q.Get("mode")
+	if mode == "" {
+		mode = "chibi"
+	}
+	var output string
+	var err error
+	if mode == "chibi" {
+		output, err = art.Chibi(style)
+	} else if mode == "image" {
+		output, err = art.Portrait(style, width)
+	} else {
+		err = fmt.Errorf("mode must be chibi or image")
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -73,7 +85,11 @@ func portrait(w http.ResponseWriter, r *http.Request) {
 			color = "tokyonight"
 		}
 	}
-	output, err = art.ColorizePortrait(output, color, frame, style, preview)
+	if mode == "chibi" {
+		output, err = art.ColorizeChibi(output, color, frame, style, preview)
+	} else {
+		output, err = art.ColorizePortrait(output, color, frame, style, preview)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -81,7 +97,7 @@ func portrait(w http.ResponseWriter, r *http.Request) {
 	if preview {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		// Only escaped characters and generated color spans reach this template.
-		page := template.Must(template.New("preview").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anime ASCII</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1a1b26;color:#e2e5f0;font-family:monospace}main{max-width:calc(100vw - 100px);overflow:auto;padding:32px;border:1px solid #414868;border-radius:20px;background:#24283b;box-shadow:0 20px 80px #0005}p{color:#a9b1d6}pre{font-size:14px;line-height:1.25;font-family:Menlo,Consolas,monospace}a{color:#b4befe}nav{display:flex;gap:20px}</style><main><p>ANIME ASCII / TOKYO NIGHT</p><pre>{{.Art}}</pre><nav><a href="/preview?style=makima">Makima</a><a href="/preview?style=reze">Reze</a><a href="/preview?style=denji">Denji</a><a href="?style={{.Style}}&width=240">240 columns</a></nav><p>anime-ascii {{.Style}}</p></main></html>`))
+		page := template.Must(template.New("preview").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anime ASCII</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1a1b26;color:#e2e5f0;font-family:monospace}main{max-width:calc(100vw - 100px);overflow:auto;padding:32px;border:1px solid #414868;border-radius:20px;background:#24283b;box-shadow:0 20px 80px #0005}p{color:#a9b1d6}pre{font-size:18px;line-height:1.25;font-family:Menlo,Consolas,monospace}a{color:#b4befe}nav{display:flex;gap:20px}</style><main><p>ANIME ASCII / TOKYO NIGHT</p><pre>{{.Art}}</pre><nav><a href="/preview?style=makima">Makima</a><a href="/preview?style=reze">Reze</a><a href="/preview?style=denji">Denji</a><a href="?style={{.Style}}&mode=image&width=80">image mode</a></nav><p>anime-ascii {{.Style}}</p></main></html>`))
 		page.Execute(w, struct {
 			Art   template.HTML
 			Style string

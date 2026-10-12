@@ -39,7 +39,11 @@ func colorize(text, theme string, frame int, style string, preview bool) (string
 				continue
 			}
 			r, g, b := gradient(x, y, frame, theme)
-			if eyePixel(style, x, y, width, height) {
+			if strings.HasPrefix(style, "chibi:") {
+				if theme == "tokyonight" || ch == '@' || ch == 'o' {
+					r, g, b = chibiColor(strings.TrimPrefix(style, "chibi:"), y, ch)
+				}
+			} else if eyePixel(style, x, y, width, height) {
 				r, g, b = 224, 175, 104
 				if style == "reze" {
 					r, g, b = 158, 206, 106

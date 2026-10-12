@@ -6,7 +6,7 @@
 <rect x="93" y="48" width="10" height="10" rx="5" fill="#9ece6a" stroke="#9ece6a"/>
 <text x="135" y="57" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="16" xml:space="preserve">anime-ascii / denji / 240 columns / tokyonight</text>
 <rect x="31" y="77" width="1978" height="1" rx="0" fill="#414868" stroke="#414868"/>
-<text x="58" y="127" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="22" xml:space="preserve">$ anime-ascii denji -width 240 -color always</text>
+<text x="58" y="127" fill="#a9b1d6" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="22" xml:space="preserve">$ anime-ascii denji -mode image -width 240 -color always</text>
 <text x="54" y="186" fill="#7aa2f7" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="13" xml:space="preserve">-</text>
 <text x="61.666666666666664" y="186" fill="#7aa2f7" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="13" xml:space="preserve">-</text>
 <text x="69.33333333333333" y="186" fill="#7aa2f7" font-family="Menlo,DejaVu Sans Mono,monospace" font-size="13" xml:space="preserve">-</text>

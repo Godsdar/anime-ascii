@@ -29,9 +29,10 @@ func run() error {
 	server := flag.String("server", "", "optional HTTP server URL; default: render locally")
 	style := flag.String("style", "makima", "makima, reze, denji")
 	colorMode := flag.String("color", "auto", "auto, always, never")
+	mode := flag.String("mode", "chibi", "chibi or image")
 	theme := flag.String("theme", "tokyonight", "tokyonight, rainbow, pastel")
 	imagePath := flag.String("image", "", "PNG/JPEG/GIF file to convert")
-	width := flag.Int("width", 0, "0: compact auto-fit; portraits: 32,40,48,64,80,100,160,200,240; images: 10..240")
+	width := flag.Int("width", 0, "image mode only; 0: auto-fit; portraits: 32,40,48,64,80,100,160,200,240; images: 10..240")
 	invert := flag.Bool("invert", false, "dense characters for dark image pixels")
 	contrast := flag.Float64("contrast", 1, "image contrast multiplier: 0.1..3")
 	animate := flag.Bool("animate", false, "animate the color gradient; Ctrl+C to stop")
@@ -42,6 +43,9 @@ func run() error {
 	}
 	if err := flag.CommandLine.Parse(args); err != nil {
 		return err
+	}
+	if *mode != "chibi" && *mode != "image" {
+		return fmt.Errorf("mode must be chibi or image")
 	}
 	if *colorMode != "auto" && *colorMode != "always" && *colorMode != "never" {
 		return fmt.Errorf("color must be auto, always or never")
@@ -59,8 +63,8 @@ func run() error {
 		return fmt.Errorf("unexpected arguments; use -help for options")
 	}
 	if *width == 0 {
-		columns, rows := terminalSize()
-		if *imagePath == "" {
+		if *imagePath == "" && *mode == "image" {
+			columns, rows := terminalSize()
 			var err error
 			*width, err = compactWidth(*style, columns, rows)
 			if err != nil {
@@ -75,6 +79,9 @@ func run() error {
 	}
 	if math.IsNaN(*contrast) || *contrast < 0.1 || *contrast > 3 {
 		return fmt.Errorf("contrast must be between 0.1 and 3")
+	}
+	if *animate && *mode == "chibi" && *imagePath == "" {
+		return fmt.Errorf("animation is available with -mode image")
 	}
 	if *animate && *imagePath != "" {
 		return fmt.Errorf("animation supports portraits only")
@@ -101,7 +108,11 @@ func run() error {
 		if endpoint == nil {
 			var text string
 			if *imagePath == "" {
-				text, err = art.Portrait(*style, *width)
+				if *mode == "chibi" {
+					text, err = art.Chibi(*style)
+				} else {
+					text, err = art.Portrait(*style, *width)
+				}
 			} else {
 				text, err = art.RenderFile(*imagePath, *width, *invert, *contrast)
 			}
@@ -128,6 +139,7 @@ func run() error {
 			} else {
 				endpoint.Path = "/art"
 				q.Set("style", *style)
+				q.Set("mode", *mode)
 				q.Set("width", strconv.Itoa(*width))
 				q.Set("frame", strconv.Itoa(frame))
 			}
@@ -165,7 +177,11 @@ func run() error {
 			var colored string
 			var err error
 			if *imagePath == "" {
-				colored, err = art.ColorizePortrait(string(data), *theme, frame, *style, false)
+				if *mode == "chibi" {
+					colored, err = art.ColorizeChibi(string(data), *theme, frame, *style, false)
+				} else {
+					colored, err = art.ColorizePortrait(string(data), *theme, frame, *style, false)
+				}
 			} else {
 				colored, err = art.Colorize(string(data), *theme, frame, false)
 			}
